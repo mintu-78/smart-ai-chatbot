@@ -27,6 +27,21 @@ function showTyping(){
 async function getBotReplay (userMessage){
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
     
+    try {
+        const response = await fetch(url,{
+            method: "POST",
+            headers: {"Content-type":"application/json"},
+            body:JSON.stringify({
+                contents:[{parts:[{text:userMessage}]}]
+            })
+        })
+
+        const data = await response.json();
+        console.log({data});
+        
+    } catch (error){
+
+    }
 }
 
 
