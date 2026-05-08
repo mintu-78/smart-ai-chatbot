@@ -1,22 +1,22 @@
-import { apiKey} from "./config.js";
+import { API_KEY } from "./config.js";
 
 const chatBox = document.getElementById("chat-box");
 const userInput = document.getElementById("user-input");
-const sendBtn =  document.getElementById("send-btn");
+const sendBtn = document.getElementById("send-btn");
 
 
-function addMessage(message,className){
+function addMessage(message, className) {
     const msgDiv = document.createElement("div");
-    msgDiv.classList.add("message",className);
+    msgDiv.classList.add("message", className);
     msgDiv.textContent = message;
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 
-function showTyping(){
+function showTyping() {
     const typingDiv = document.createElement("div");
-    typingDiv.classList.add("message","bot-message");
+    typingDiv.classList.add("message", "bot-message");
     typingDiv.textContent = "AI is typing...";
     chatBox.appendChild(typingDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -24,48 +24,46 @@ function showTyping(){
 }
 
 
-async function getBotReplay (userMessage){
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    try {
-        const response = await fetch(url,{
-            method: "POST",
-            headers: {"Content-type":"application/json"},
-            body:JSON.stringify({
-                contents:[{parts:[{text:userMessage}]}]
-            })
+
+async function askAI(message) {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: "openai/gpt-3.5-turbo",
+            messages: [
+                { role: "user", content: message }
+            ]
         })
+    });
 
-        const data = await response.json();
-
-        if(!response.ok){
-            console.error("API Error:",data);
-            return data?.error?.message || "Error fething response."
-        }
-
-        return(
-            data.candidates?.[0]?.content?.parts?.[0]?.text || "sorry, I couldn't get that."
-        )
-    } catch (error){
-
-    }
+    const data = await res.json();
+    console.log(data.choices[0].message.content);
+    return data
 }
 
-
-sendBtn.onclick = async() => {
+sendBtn.onclick = async () => {
     const message = userInput.value.trim();
-    if(message === "") return;
+    if (message === "") return;
+    console.log(message);
+
     addMessage(message, "user-message");
     userInput.value = "";
 
     const typingDiv = showTyping();
 
-    const botReplay = await getBotReplay(message);
+    const botReplay = await askAI(message);
     typingDiv.remove();
-    addMessage(botReplay,"bot-message");
-    localStorage.setItem("ChatHistory",chatBox.innerHTML);
+    const botMessage = botReplay.choices[0].message.content;
+
+    addMessage(botMessage, "bot-message");
+    localStorage.setItem("ChatHistory", chatBox.innerHTML);
 
 }
 
-userInput.addEventListener("keypress",(e) =>{
-    if(e.key === "Enter") sendBtn.click();
+userInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendBtn.click();
 })
