@@ -54,13 +54,19 @@ sendBtn.onclick = async () => {
     userInput.value = "";
 
     const typingDiv = showTyping();
+    try {
+        const botReplay = await askAI(message);
+        typingDiv.remove();
+        const botMessage = botReplay.choices[0].message.content;
 
-    const botReplay = await askAI(message);
-    typingDiv.remove();
-    const botMessage = botReplay.choices[0].message.content;
+        addMessage(botMessage, "bot-message");
+        localStorage.setItem("ChatHistory", chatBox.innerHTML);
+    } catch (error) {
+        typingDiv.remove();
+        addMessage("Error connecting to AI.", "bot-message");
+        console.error(error);
+    }
 
-    addMessage(botMessage, "bot-message");
-    localStorage.setItem("ChatHistory", chatBox.innerHTML);
 
 }
 
